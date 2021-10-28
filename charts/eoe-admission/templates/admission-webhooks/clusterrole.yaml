@@ -1,0 +1,20 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eoe-admission-controller-cr
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create

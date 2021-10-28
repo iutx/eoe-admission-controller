@@ -1,0 +1,8 @@
+apiVersion: v2
+name: eoe-admission
+description: Deploy webhook for erda-on-erda
+type: application
+version: 0.1.0
+maintainers:
+  - name: iutx
+    email: root@viper.run
