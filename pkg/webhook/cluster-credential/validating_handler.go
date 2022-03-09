@@ -18,6 +18,7 @@ import (
 var (
 	TelegrafDS              = "telegraf"
 	TelegrafPlatform        = "telegraf-platform"
+	FluentBitDS             = "fluent-bit"
 	ErdaClusterCredential   = "erda-cluster-credential"
 	defaultClusterAccessKey = map[string][]byte{
 		"CLUSTER_ACCESS_KEY": []byte("init"),
@@ -33,7 +34,7 @@ type ValidatingHandler struct {
 }
 
 func (v *ValidatingHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
-	if (req.Resource == dsResource && strings.Contains(req.Name, TelegrafDS)) ||
+	if req.Resource == dsResource && (strings.Contains(req.Name, TelegrafDS) || strings.Contains(req.Name, FluentBitDS)) ||
 		(req.Resource == deployResource && strings.Contains(req.Name, TelegrafPlatform)) {
 		logrus.Infof("wating to patch, name: %s, resources: %s, namespace: %s", req.Name, req.Resource, req.Namespace)
 		patchInfo, err := v.PatchClusterCredential(req)
