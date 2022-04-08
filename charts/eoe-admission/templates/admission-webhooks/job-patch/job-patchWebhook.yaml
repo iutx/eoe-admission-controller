@@ -24,6 +24,7 @@ spec:
           imagePullPolicy: Always
           args:
             - patch
+            - --patch-validating=false
             - --webhook-name=eoe-admission
             - --namespace={{ .Release.Namespace }}
             - --secret-name=eoe-admission

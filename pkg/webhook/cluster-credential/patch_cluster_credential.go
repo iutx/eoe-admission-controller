@@ -5,18 +5,17 @@ import (
 	"context"
 	"encoding/json"
 
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	appsv1 "k8s.io/api/apps/v1"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
-func (v *ValidatingHandler) PatchClusterCredential(req admission.Request) ([]byte, error) {
+func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
 	clusterCredential := &corev1.Secret{}
-
 	if err := v.CRClient.Get(context.Background(), client.ObjectKey{
 		Name:      ErdaClusterCredential,
 		Namespace: req.Namespace,
@@ -45,8 +44,9 @@ func (v *ValidatingHandler) PatchClusterCredential(req admission.Request) ([]byt
 			return nil, fmt.Errorf("decode error: %v", err)
 		}
 
-		curDs.Spec.Template.Spec = v.checkClusterCredential(curDs.Spec.Template.Spec)
-		curDs.Spec.Template.Spec.Affinity = v.PatchEdgeAffinity(curDs.Name)
+		curDs.Spec.Template.Spec = v.patchClusterCredential(curDs.Spec.Template.Spec)
+		curDs.Spec.Template.Spec.Affinity = v.patchAffinity(curDs.Name)
+		curDs.Spec.Template.Spec.Containers[0].Env = v.patchEnv(curDs.Spec.Template.Spec.Containers[0].Env)
 
 		newPodBytes, err := json.Marshal(curDs)
 		if err != nil {
@@ -59,7 +59,8 @@ func (v *ValidatingHandler) PatchClusterCredential(req admission.Request) ([]byt
 			return nil, fmt.Errorf("decode error: %v", err)
 		}
 
-		curDeploy.Spec.Template.Spec = v.checkClusterCredential(curDeploy.Spec.Template.Spec)
+		curDeploy.Spec.Template.Spec = v.patchClusterCredential(curDeploy.Spec.Template.Spec)
+		curDeploy.Spec.Template.Spec.Containers[0].Env = v.patchEnv(curDeploy.Spec.Template.Spec.Containers[0].Env)
 
 		newPodBytes, err := json.Marshal(curDeploy)
 		if err != nil {
@@ -71,7 +72,7 @@ func (v *ValidatingHandler) PatchClusterCredential(req admission.Request) ([]byt
 	}
 }
 
-func (v *ValidatingHandler) checkClusterCredential(curSpec corev1.PodSpec) corev1.PodSpec {
+func (v *MutatingWebhookHandler) patchClusterCredential(curSpec corev1.PodSpec) corev1.PodSpec {
 	// Check volumes
 	volumeExisted := false
 	for _, volume := range curSpec.Volumes {

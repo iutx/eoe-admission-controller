@@ -23,16 +23,16 @@ var (
 	deployResource = metav1.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
 )
 
-type ValidatingHandler struct {
+type MutatingWebhookHandler struct {
 	CRClient client.Client
 	Decoder  *admission.Decoder
 }
 
-func (v *ValidatingHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
-	if req.Resource == dsResource && (strings.Contains(req.Name, TelegrafDS) || strings.Contains(req.Name, FluentBitDS)) ||
-		(req.Resource == deployResource && strings.Contains(req.Name, TelegrafPlatform)) {
+func (v *MutatingWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
+	if req.Resource == dsResource && (StrContainers(req.Name, TelegrafDS, FluentBitDS)) ||
+		(req.Resource == deployResource && StrContainers(req.Name, TelegrafPlatform)) {
 		logrus.Infof("wating to patch, name: %s, resources: %s, namespace: %s", req.Name, req.Resource, req.Namespace)
-		patchInfo, err := v.PatchClusterCredential(req)
+		patchInfo, err := v.Patch(req)
 		if err != nil {
 			logrus.Error(err)
 		} else {
@@ -44,4 +44,13 @@ func (v *ValidatingHandler) Handle(ctx context.Context, req admission.Request) a
 	}
 
 	return admission.Allowed("")
+}
+
+func StrContainers(str string, subStr ...string) bool {
+	for _, s := range subStr {
+		if strings.Contains(str, s) {
+			return true
+		}
+	}
+	return false
 }

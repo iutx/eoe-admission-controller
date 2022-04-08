@@ -7,9 +7,15 @@ ENV GO111MODULE=on \
     GOPROXY=https://goproxy.cn
 
 WORKDIR /build
-COPY . /build
+
+COPY go.mod go.mod
+COPY go.sum go.sum
+RUN go mod download
+
+COPY pkg/ pkg/
+COPY cmd/ cmd/
+
 RUN cd cmd/eoe \
-    && go mod tidy \
     && go build -o /build/dist/eoe .
 
 

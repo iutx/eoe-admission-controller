@@ -2,21 +2,29 @@ package webhook
 
 import (
 	"context"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	crwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 
 	cluster_credential "github.com/iutx/eoe-admission-controller/pkg/webhook/cluster-credential"
 )
 
 const (
-	listen   = 443
-	certPath = "/run/eoe/tls"
+	listen         = 443
+	certPath       = "/run/eoe/tls"
+	certCustomPath = "CERT_PATH"
+	mode           = "MODE"
+	devMode        = "DEV"
+	devInsecure    = "DEV_INSECURE"
+	apiServerAddr  = "APISERVER_ADDR"
+	kubeconfigPath = "KUBECONFIG_PATH"
 )
 
 var (
@@ -33,11 +41,26 @@ type Webhook struct {
 }
 
 func New() (*Webhook, error) {
-	w := &Webhook{}
+	var (
+		w   = &Webhook{}
+		rc  *rest.Config
+		err error
+	)
 
-	rc, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
+	if os.Getenv(mode) == devMode {
+		rc, err = clientcmd.BuildConfigFromFlags(os.Getenv(apiServerAddr), os.Getenv(kubeconfigPath))
+		if err != nil {
+			return nil, err
+		}
+
+		if os.Getenv(devInsecure) == "true" {
+			rc.TLSClientConfig.Insecure = true
+		}
+	} else {
+		rc, err = rest.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	sc := runtime.NewScheme()
@@ -73,8 +96,12 @@ func (w *Webhook) Start() error {
 		CertDir: certPath,
 	}
 
+	if os.Getenv(certCustomPath) != "" {
+		server.CertDir = os.Getenv(certCustomPath)
+	}
+
 	server.Register("/eoe/cluster-credential", &crwebhook.Admission{
-		Handler: &cluster_credential.ValidatingHandler{
+		Handler: &cluster_credential.MutatingWebhookHandler{
 			CRClient: w.CRClient,
 			Decoder:  w.Decoder,
 		},

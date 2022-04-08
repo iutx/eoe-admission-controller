@@ -6,7 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (v *ValidatingHandler) PatchEdgeAffinity(name string) *corev1.Affinity {
+func (v *MutatingWebhookHandler) patchAffinity(name string) *corev1.Affinity {
 	if !strings.Contains(name, "edge") {
 		return nil
 	}
