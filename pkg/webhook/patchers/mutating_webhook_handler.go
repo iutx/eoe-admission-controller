@@ -1,4 +1,4 @@
-package cluster_credential
+package patchers
 
 import (
 	"context"
@@ -14,7 +14,7 @@ const (
 	TelegrafDS               = "telegraf"
 	TelegrafPlatform         = "telegraf-platform"
 	FluentBitDS              = "fluent-bit"
-	ErdaClusterCredential    = "erda-cluster-credential"
+	ErdaClusterCredential    = "erda-patchers"
 	ErdaOnErdaServiceAccount = "erda-on-erda"
 )
 

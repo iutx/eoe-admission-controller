@@ -5,15 +5,20 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
+	zaplogfmt "github.com/sykesm/zap-logfmt"
+	uzap "go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	crwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	cluster_credential "github.com/iutx/eoe-admission-controller/pkg/webhook/cluster-credential"
+	cluster_credential "github.com/iutx/eoe-admission-controller/pkg/webhook/patchers"
 )
 
 const (
@@ -46,6 +51,21 @@ func New() (*Webhook, error) {
 		rc  *rest.Config
 		err error
 	)
+
+	leveler := uzap.LevelEnablerFunc(func(level zapcore.Level) bool {
+		return level >= zapcore.DPanicLevel
+	})
+	stackTraceLeveler := uzap.LevelEnablerFunc(func(level zapcore.Level) bool {
+		return false
+	})
+	logfmtEncoder := zaplogfmt.NewEncoder(uzap.NewProductionEncoderConfig())
+	logger := zap.New(
+		zap.Level(leveler),
+		zap.StacktraceLevel(stackTraceLeveler),
+		zap.UseDevMode(false),
+		zap.WriteTo(os.Stdout),
+		zap.Encoder(logfmtEncoder))
+	log.SetLogger(logger)
 
 	if os.Getenv(mode) == devMode {
 		rc, err = clientcmd.BuildConfigFromFlags(os.Getenv(apiServerAddr), os.Getenv(kubeconfigPath))
@@ -97,7 +117,7 @@ func (w *Webhook) Start() error {
 	}
 
 	server := crwebhook.NewServer(options)
-	server.Register("/eoe/cluster-credential", &crwebhook.Admission{
+	server.Register("/eoe/patches", &crwebhook.Admission{
 		Handler: &cluster_credential.MutatingWebhookHandler{
 			CRClient: w.CRClient,
 			Decoder:  w.Decoder,

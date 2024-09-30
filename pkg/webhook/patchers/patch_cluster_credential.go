@@ -1,4 +1,4 @@
-package cluster_credential
+package patchers
 
 import (
 	"context"
@@ -62,6 +62,7 @@ func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
 
 		curDeploy.Spec.Template.Spec = v.patchClusterCredential(curDeploy.Spec.Template.Spec)
 		curDeploy.Spec.Template.Spec.Containers[0].Env = v.patchEnv(curDeploy.Spec.Template.Spec.Containers[0].Env)
+		curDeploy.Spec.Template.Spec.ServiceAccountName = ErdaOnErdaServiceAccount
 
 		newPodBytes, err := json.Marshal(curDeploy)
 		if err != nil {

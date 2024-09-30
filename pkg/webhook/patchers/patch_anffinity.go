@@ -1,4 +1,4 @@
-package cluster_credential
+package patchers
 
 import (
 	"strings"
