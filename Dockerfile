@@ -1,6 +1,8 @@
 FROM registry.erda.cloud/erda-x/golang:1.22 AS build
 LABEL maintainer="iutx<root@viper.run>"
 ENV CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 \
     GOPROXY=https://goproxy.cn
 
 WORKDIR /build
