@@ -1,9 +1,6 @@
-FROM golang:1.16-alpine3.14 as build
+FROM registry.erda.cloud/erda-x/golang:1.22 AS build
 LABEL maintainer="iutx<root@viper.run>"
-ENV GO111MODULE=on \
-    CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64 \
+ENV CGO_ENABLED=0 \
     GOPROXY=https://goproxy.cn
 
 WORKDIR /build
@@ -19,14 +16,12 @@ RUN cd cmd/eoe \
     && go build -o /build/dist/eoe .
 
 
-FROM alpine:3.12
+FROM registry.erda.cloud/erda-x/debian-bookworm:12
 LABEL maintainer="iutx<root@viper.run>"
 ENV LANG=en_US.UTF-8 \
     TZ="Asia/Shanghai"
-COPY --from=build /build/dist/eoe /opt
 
-RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main/" > /etc/apk/repositories \
-    && apk add --no-cache -U bash
+COPY --from=build /build/dist/eoe /opt
 
 WORKDIR /opt
 EXPOSE 443

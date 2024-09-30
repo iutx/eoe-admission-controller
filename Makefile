@@ -2,12 +2,13 @@
 PROJ_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 GOARCH ?= $(shell go env GOARCH)
 GOOS ?= $(shell go env GOOS)
+VERSION = $(shell cat VERSION)
 GO_VERSION := $(shell go version)
 GO_SHORT_VERSION := $(shell go version | awk '{print $$3}')
 BUILD_TIME := $(shell date "+%Y-%m-%d %H:%M:%S")
 COMMIT_ID := $(shell git rev-parse HEAD 2>/dev/null)
-IMAGE_TAG := $(shell date '+%Y%m%d')-dev
-IMAGE_REPO := registry.cn-shanghai.aliyuncs.com/viper
+IMAGE_TAG := ${VERSION}-$(shell date '+%Y%m%d%H%M%S')-$(shell git rev-parse --short HEAD)
+IMAGE_REPO := registry.erda.cloud/erda
 BUILD_IMAGE := ${IMAGE_REPO}/eoe:${IMAGE_TAG}
 LATEST_IMAGE := ${IMAGE_REPO}/eoe
 

@@ -16,18 +16,18 @@ spec:
         app: eoe-admission
     spec:
       containers:
-      - name: eoe-admission-server
-        image: registry.cn-shanghai.aliyuncs.com/viper/eoe
-        imagePullPolicy: Always
-        ports:
-        - name: tls-port
-          containerPort: 443
-        volumeMounts:
-        - name: eoe-admission-tls
-          mountPath: /run/eoe/tls
-          readOnly: true
+        - name: eoe-admission-server
+          image: {{ .Values.image.registry }}/{{.Values.image.repo}}:{{.Values.image.tag}}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: tls-port
+              containerPort: 443
+          volumeMounts:
+            - name: eoe-admission-tls
+              mountPath: /run/eoe/tls
+              readOnly: true
       serviceAccountName: eoe-admission-controller-sa
       volumes:
-      - name: eoe-admission-tls
-        secret:
-          secretName: eoe-admission
+        - name: eoe-admission-tls
+          secret:
+            secretName: eoe-admission

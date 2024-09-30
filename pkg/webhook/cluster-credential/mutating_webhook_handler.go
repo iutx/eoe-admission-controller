@@ -10,11 +10,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+const (
+	TelegrafDS               = "telegraf"
+	TelegrafPlatform         = "telegraf-platform"
+	FluentBitDS              = "fluent-bit"
+	ErdaClusterCredential    = "erda-cluster-credential"
+	ErdaOnErdaServiceAccount = "erda-on-erda"
+)
+
 var (
-	TelegrafDS              = "telegraf"
-	TelegrafPlatform        = "telegraf-platform"
-	FluentBitDS             = "fluent-bit"
-	ErdaClusterCredential   = "erda-cluster-credential"
 	defaultClusterAccessKey = map[string][]byte{
 		"CLUSTER_ACCESS_KEY": []byte("init"),
 	}
@@ -25,7 +29,7 @@ var (
 
 type MutatingWebhookHandler struct {
 	CRClient client.Client
-	Decoder  *admission.Decoder
+	Decoder  admission.Decoder
 }
 
 func (v *MutatingWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {

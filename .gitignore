@@ -3,3 +3,4 @@
 packages
 redeploy.sh
 deploy.yaml
+.DS_Store

@@ -7,11 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	crwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/rest"
 
 	cluster_credential "github.com/iutx/eoe-admission-controller/pkg/webhook/cluster-credential"
 )
@@ -37,7 +37,7 @@ type AdmissionFunc func(ctx context.Context, request admission.Request) admissio
 
 type Webhook struct {
 	CRClient client.Client
-	Decoder  *admission.Decoder
+	Decoder  admission.Decoder
 }
 
 func New() (*Webhook, error) {
@@ -80,26 +80,23 @@ func New() (*Webhook, error) {
 		w.CRClient = crc
 	}
 
-	w.Decoder, err = admission.NewDecoder(sc)
-	if err != nil {
-		return nil, err
-	}
-
+	w.Decoder = admission.NewDecoder(sc)
 	return w, nil
 }
 
 func (w *Webhook) Start() error {
 	logrus.Infof("start eoe webhook server at port: %d", listen)
 
-	server := crwebhook.Server{
+	options := crwebhook.Options{
 		Port:    listen,
 		CertDir: certPath,
 	}
 
 	if os.Getenv(certCustomPath) != "" {
-		server.CertDir = os.Getenv(certCustomPath)
+		options.CertDir = os.Getenv(certCustomPath)
 	}
 
+	server := crwebhook.NewServer(options)
 	server.Register("/eoe/cluster-credential", &crwebhook.Admission{
 		Handler: &cluster_credential.MutatingWebhookHandler{
 			CRClient: w.CRClient,
@@ -108,5 +105,5 @@ func (w *Webhook) Start() error {
 	})
 
 	// Default inject kubernetes schema
-	return server.StartStandalone(context.Background(), nil)
+	return server.Start(context.Background())
 }

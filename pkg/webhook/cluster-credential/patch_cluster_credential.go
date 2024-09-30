@@ -1,17 +1,17 @@
 package cluster_credential
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
 
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	appsv1 "k8s.io/api/apps/v1"
 	"github.com/sirupsen/logrus"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
@@ -47,6 +47,7 @@ func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
 		curDs.Spec.Template.Spec = v.patchClusterCredential(curDs.Spec.Template.Spec)
 		curDs.Spec.Template.Spec.Affinity = v.patchAffinity(curDs.Name)
 		curDs.Spec.Template.Spec.Containers[0].Env = v.patchEnv(curDs.Spec.Template.Spec.Containers[0].Env)
+		curDs.Spec.Template.Spec.ServiceAccountName = ErdaOnErdaServiceAccount
 
 		newPodBytes, err := json.Marshal(curDs)
 		if err != nil {
