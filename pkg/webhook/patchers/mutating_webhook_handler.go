@@ -10,10 +10,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+// TODO: patch from config
 const (
 	TelegrafDS               = "telegraf"
 	TelegrafPlatform         = "telegraf-platform"
 	FluentBitDS              = "fluent-bit"
+	Collector                = "collector"
 	ErdaClusterCredential    = "erda-cluster-credential"
 	ErdaOnErdaServiceAccount = "erda-on-erda"
 )
@@ -34,7 +36,7 @@ type MutatingWebhookHandler struct {
 
 func (v *MutatingWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	if req.Resource == dsResource && (StrContainers(req.Name, TelegrafDS, FluentBitDS)) ||
-		(req.Resource == deployResource && StrContainers(req.Name, TelegrafPlatform)) {
+		(req.Resource == deployResource && StrContainers(req.Name, TelegrafPlatform, Collector)) {
 		logrus.Infof("wating to patch, name: %s, resources: %s, namespace: %s", req.Name, req.Resource, req.Namespace)
 		patchInfo, err := v.Patch(req)
 		if err != nil {
