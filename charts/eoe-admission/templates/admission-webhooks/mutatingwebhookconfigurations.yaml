@@ -14,7 +14,7 @@ webhooks:
     service:
       namespace: {{ .Release.Namespace }}
       name: eoe-admission
-      path: "/eoe/cluster-credential"
+      path: "/eoe/patches"
   admissionReviewVersions: ["v1", "v1beta1"]
   sideEffects: None
   timeoutSeconds: 5

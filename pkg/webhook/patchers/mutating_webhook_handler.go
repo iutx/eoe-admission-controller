@@ -14,7 +14,7 @@ const (
 	TelegrafDS               = "telegraf"
 	TelegrafPlatform         = "telegraf-platform"
 	FluentBitDS              = "fluent-bit"
-	ErdaClusterCredential    = "erda-patchers"
+	ErdaClusterCredential    = "erda-cluster-credential"
 	ErdaOnErdaServiceAccount = "erda-on-erda"
 )
 
