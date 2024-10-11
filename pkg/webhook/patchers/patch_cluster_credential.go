@@ -47,7 +47,6 @@ func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
 		curDs.Spec.Template.Spec = v.patchClusterCredential(curDs.Spec.Template.Spec)
 		curDs.Spec.Template.Spec.Affinity = v.patchAffinity(curDs.Name)
 		curDs.Spec.Template.Spec.Containers[0].Env = v.patchEnv(curDs.Spec.Template.Spec.Containers[0].Env)
-		curDs.Spec.Template.Spec.ServiceAccountName = ErdaOnErdaServiceAccount
 
 		newPodBytes, err := json.Marshal(curDs)
 		if err != nil {
@@ -62,7 +61,6 @@ func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
 
 		curDeploy.Spec.Template.Spec = v.patchClusterCredential(curDeploy.Spec.Template.Spec)
 		curDeploy.Spec.Template.Spec.Containers[0].Env = v.patchEnv(curDeploy.Spec.Template.Spec.Containers[0].Env)
-		curDeploy.Spec.Template.Spec.ServiceAccountName = ErdaOnErdaServiceAccount
 
 		newPodBytes, err := json.Marshal(curDeploy)
 		if err != nil {

@@ -12,7 +12,6 @@ IMAGE_REPO := registry.erda.cloud/erda
 BUILD_IMAGE := ${IMAGE_REPO}/eoe:${IMAGE_TAG}
 LATEST_IMAGE := ${IMAGE_REPO}/eoe
 
-
 build-image:
 	@echo Start build image: ${BUILD_IMAGE}
 	@docker build -f Dockerfile . -t ${BUILD_IMAGE}
