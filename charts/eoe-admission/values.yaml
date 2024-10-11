@@ -1,5 +1,5 @@
 image:
   registry: registry.erda.cloud
   repo: erda/eoe
-  tag: 1.0.1-20240930173739-9c66840
+  tag: 1.0.1-20241011135543-4473bb4
   pullPolicy: IfNotPresent

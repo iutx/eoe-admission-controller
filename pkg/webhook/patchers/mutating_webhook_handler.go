@@ -12,12 +12,11 @@ import (
 
 // TODO: patch from config
 const (
-	TelegrafDS               = "telegraf"
-	TelegrafPlatform         = "telegraf-platform"
-	FluentBitDS              = "fluent-bit"
-	Collector                = "collector"
-	ErdaClusterCredential    = "erda-cluster-credential"
-	ErdaOnErdaServiceAccount = "erda-on-erda"
+	TelegrafDS            = "telegraf"
+	TelegrafPlatform      = "telegraf-platform"
+	FluentBitDS           = "fluent-bit"
+	Collector             = "collector"
+	ErdaClusterCredential = "erda-cluster-credential"
 )
 
 var (
