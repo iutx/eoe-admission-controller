@@ -12,11 +12,13 @@ import (
 
 // TODO: patch from config
 const (
-	TelegrafDS            = "telegraf"
-	TelegrafPlatform      = "telegraf-platform"
-	FluentBitDS           = "fluent-bit"
-	Collector             = "collector"
-	ErdaClusterCredential = "erda-cluster-credential"
+	TelegrafDS               = "telegraf"
+	TelegrafPlatform         = "telegraf-platform"
+	FluentBitDS              = "fluent-bit"
+	Collector                = "collector"
+	ErdaClusterCredential    = "erda-cluster-credential"
+	ClusterAgent             = "cluster-agent"
+	ErdaOnErdaServiceAccount = "erda-on-erda"
 )
 
 var (
@@ -34,6 +36,19 @@ type MutatingWebhookHandler struct {
 }
 
 func (v *MutatingWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
+	if req.Resource == deployResource && strings.HasPrefix(req.Name, ClusterAgent) {
+		logrus.Infof("wating to patch, name: %s, resources: %s, namespace: %s", req.Name, req.Resource, req.Namespace)
+		patchInfo, err := v.PatchPrivilegeServiceAccount(req)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			if len(patchInfo) != 0 {
+				logrus.Infof("patch %s in namespace: %s", req.Name, req.Namespace)
+				return admission.PatchResponseFromRaw(req.AdmissionRequest.Object.Raw, patchInfo)
+			}
+		}
+	}
+
 	if req.Resource == dsResource && (StrContainers(req.Name, TelegrafDS, FluentBitDS)) ||
 		(req.Resource == deployResource && StrContainers(req.Name, TelegrafPlatform, Collector)) {
 		logrus.Infof("wating to patch, name: %s, resources: %s, namespace: %s", req.Name, req.Resource, req.Namespace)

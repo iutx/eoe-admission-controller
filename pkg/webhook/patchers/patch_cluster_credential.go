@@ -14,6 +14,38 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+func (v *MutatingWebhookHandler) PatchPrivilegeServiceAccount(req admission.Request) ([]byte, error) {
+	switch req.Resource {
+	case dsResource:
+		curDs := &appsv1.DaemonSet{}
+		if err := v.Decoder.Decode(req, curDs); err != nil {
+			return nil, fmt.Errorf("decode error: %v", err)
+		}
+		curDs.Spec.Template.Spec.ServiceAccountName = ErdaOnErdaServiceAccount
+
+		newPodBytes, err := json.Marshal(curDs)
+		if err != nil {
+			return nil, fmt.Errorf("marshal new pod error: %v", err)
+		}
+		return newPodBytes, nil
+	case deployResource:
+		curDeploy := &appsv1.Deployment{}
+		if err := v.Decoder.Decode(req, curDeploy); err != nil {
+			return nil, fmt.Errorf("decode error: %v", err)
+		}
+
+		curDeploy.Spec.Template.Spec.ServiceAccountName = ErdaOnErdaServiceAccount
+
+		newPodBytes, err := json.Marshal(curDeploy)
+		if err != nil {
+			return nil, fmt.Errorf("marshal new pod error: %v", err)
+		}
+		return newPodBytes, nil
+	default:
+		return nil, fmt.Errorf("resources doesn't match: %v", req.Resource)
+	}
+}
+
 func (v *MutatingWebhookHandler) Patch(req admission.Request) ([]byte, error) {
 	clusterCredential := &corev1.Secret{}
 	if err := v.CRClient.Get(context.Background(), client.ObjectKey{
